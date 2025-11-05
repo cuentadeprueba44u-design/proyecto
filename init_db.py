@@ -55,13 +55,13 @@ def main():
 
         print("✅ Conectado a la base de datos")
 
-        # Ejecutar script SQL
-        sql_path = 'control_acceso_3.sql'
+        # Ejecutar script SQL correcto
+        sql_path = 'control_acceso_postgres.sql'
         if os.path.exists(sql_path):
             ejecutar_sql(conn, sql_path)
         else:
             print("❌ Archivo SQL no encontrado")
-            print("💡 Asegúrate de que el archivo 'control_acceso_3.sql' esté en el directorio raíz")
+            print("💡 Asegúrate de que el archivo 'control_acceso_postgres.sql' esté en el directorio raíz")
 
     except Exception as e:
         print(f"❌ Error de conexión o ejecución: {e}")
