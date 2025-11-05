@@ -26,13 +26,43 @@ body {
 }
 
 .login-container {
-   
-    width: 900px;
-    margin: auto;
-    padding: 2rem;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem;
     background: var(--card-gradient);
     border-radius: 12px;
     box-shadow: var(--shadow);
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        padding: 0.5rem;
+        margin: 0.5rem;
+        width: auto;
+    }
+    
+    .login-card {
+        padding: 1rem !important;
+    }
+    
+    .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    h3 {
+        font-size: 1.5rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
 }
 
 /* Navbar moderna */
