@@ -11,13 +11,23 @@ class Database:
         self.dsn = get_database_url()
 
     def conectar(self):
-        """Establecer conexión con la base de datos PostgreSQL"""
+        """Establecer conexión con la base de datos PostgreSQL (siempre con sslmode=require para Render)"""
         try:
             # preferir DSN si está disponible
             if self.dsn:
-                conn = psycopg.connect(self.dsn)
+                # Si la cadena ya tiene sslmode, no lo duplicamos
+                dsn = self.dsn
+                if 'sslmode=' not in dsn:
+                    if '?' in dsn:
+                        dsn += '&sslmode=require'
+                    else:
+                        dsn += '?sslmode=require'
+                conn = psycopg.connect(dsn)
             else:
-                conn = psycopg.connect(**self.config)
+                # Añadir sslmode al dict de config
+                config = dict(self.config)
+                config['sslmode'] = 'require'
+                conn = psycopg.connect(**config)
             return conn
         except Exception as e:
             print(f"Error al conectar a PostgreSQL: {e}")
