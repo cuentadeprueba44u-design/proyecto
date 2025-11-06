@@ -7,8 +7,8 @@ Notas:
 - Algunos servicios no permiten crear la base de datos desde el usuario proporcionado; en tal caso importa el SQL directamente desde el panel de la base de datos o solicita permisos.
 """
 import os
-import psycopg
-from psycopg import sql
+import psycopg2
+from psycopg2 import sql
 from config import DATABASE_URL, get_db_config
 
 
@@ -43,17 +43,16 @@ def main():
     print("🚀 Inicializando Sistema de Control de Acceso (PostgreSQL)")
     print("=" * 50)
 
-    # Preparar conexión: preferir DATABASE_URL
+
+    # Preparar conexión: Railway/Postgres
     conn = None
     try:
-        if DATABASE_URL:
-            # psycopg.connect acepta la DATABASE_URL directamente
-            conn = psycopg.connect(DATABASE_URL)
-        else:
-            cfg = get_db_config()
-            conn = psycopg.connect(**cfg)
+        cfg = get_db_config()
+        # Añadir sslmode=require para Railway
+        cfg['sslmode'] = 'require'
+        conn = psycopg2.connect(**cfg)
 
-        print("✅ Conectado a la base de datos")
+        print("✅ Conectado a la base de datos Railway/Postgres")
 
         # Ejecutar script SQL correcto
         sql_path = 'control_acceso_postgres.sql'
@@ -65,7 +64,7 @@ def main():
 
     except Exception as e:
         print(f"❌ Error de conexión o ejecución: {e}")
-        print("� Verifica que la variable DATABASE_URL esté definida y sea correcta, o que la base de datos sea accesible.")
+        print("� Verifica que las credenciales Railway sean correctas y que la base de datos sea accesible.")
     finally:
         if conn:
             conn.close()
