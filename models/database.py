@@ -1,6 +1,6 @@
 import hashlib
-import psycopg
-from psycopg.rows import dict_row
+import psycopg2
+import psycopg2.extras
 from config import get_db_config, get_database_url
 
 
@@ -11,23 +11,33 @@ class Database:
         self.dsn = get_database_url()
 
     def conectar(self):
-        """Establecer conexión con la base de datos PostgreSQL (siempre con sslmode=require para Render)"""
+        """Establecer conexión con la base de datos PostgreSQL.
+
+        Intenta usar DSN (DATABASE_URL) si está disponible, sino usa el diccionario
+        devuelto por get_db_config(). Añade sslmode=require por defecto para
+        conexiones remotas seguras. No fuerces parámetros extra que psycopg2 no
+        reconoce.
+        """
         try:
-            # preferir DSN si está disponible
+            # Si hay una URL/DSN preferirla (puede venir con sslmode)
             if self.dsn:
-                # Si la cadena ya tiene sslmode, no lo duplicamos
                 dsn = self.dsn
                 if 'sslmode=' not in dsn:
                     if '?' in dsn:
                         dsn += '&sslmode=require'
                     else:
                         dsn += '?sslmode=require'
-                conn = psycopg.connect(dsn)
-            else:
-                # Añadir sslmode al dict de config
-                config = dict(self.config)
+                conn = psycopg2.connect(dsn)
+                return conn
+
+            # Usar config dict
+            config = dict(self.config)
+            if 'sslmode' not in config:
                 config['sslmode'] = 'require'
-                conn = psycopg.connect(**config)
+            # timeout razonable
+            config.setdefault('connect_timeout', 10)
+
+            conn = psycopg2.connect(**config)
             return conn
         except Exception as e:
             print(f"Error al conectar a PostgreSQL: {e}")
@@ -51,8 +61,8 @@ def obtener_permisos_usuario(usuario_id):
         return []
 
     try:
-        # usar cursor con filas tipo dict (psycopg3)
-        with conn.cursor(row_factory=dict_row) as cursor:
+        # usar cursor con filas tipo dict (psycopg2.DictCursor)
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute("""
                 SELECT p.nombre, p.modulo
                 FROM usuarios u
@@ -85,7 +95,7 @@ def obtener_usuario_actual():
     if not conn:
         return None
     try:
-        with conn.cursor(row_factory=dict_row) as cursor:
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute("""
                 SELECT u.*, r.nombre as rol_nombre, r.descripcion as rol_descripcion
                 FROM usuarios u 
@@ -110,7 +120,7 @@ def obtener_usuario_por_id(usuario_id):
     if not conn:
         return None
     try:
-        with conn.cursor(row_factory=dict_row) as cursor:
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute("""
                 SELECT u.*, r.nombre as rol_nombre, r.descripcion as rol_descripcion
                 FROM usuarios u 
