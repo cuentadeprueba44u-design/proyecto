@@ -58,7 +58,7 @@ def listar_alertas():
                 SUM(CASE WHEN nivel = 'medio' THEN 1 ELSE 0 END) as medias,
                 SUM(CASE WHEN nivel = 'bajo' THEN 1 ELSE 0 END) as bajas
             FROM alertas 
-            WHERE DATE(fecha) = CURDATE()
+            WHERE DATE(fecha) = CURRENT_DATE
         """)
         estadisticas = cursor.fetchone()
         
