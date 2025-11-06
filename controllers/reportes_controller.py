@@ -357,8 +357,8 @@ def reporte_estadisticas():
             SELECT 
                 (SELECT COUNT(*) FROM visitantes WHERE estado = 'activo') as visitantes_activos,
                 (SELECT COUNT(*) FROM usuarios WHERE estado = 'activo') as usuarios_activos,
-                (SELECT COUNT(*) FROM accesos WHERE DATE(fecha_hora) = CURDATE()) as accesos_hoy,
-                (SELECT COUNT(*) FROM alertas WHERE DATE(fecha) = CURDATE()) as alertas_hoy,
+                (SELECT COUNT(*) FROM accesos WHERE DATE(fecha_hora) = CURRENT_DATE) as accesos_hoy,
+                (SELECT COUNT(*) FROM alertas WHERE DATE(fecha) = CURRENT_DATE) as alertas_hoy,
                 (SELECT COUNT(*) FROM credenciales WHERE estado = 'activa') as credenciales_activas
         """)
         estadisticas = cursor.fetchone()
@@ -372,7 +372,7 @@ def reporte_estadisticas():
                 SUM(CASE WHEN tipo = 'salida' THEN 1 ELSE 0 END) as salidas,
                 SUM(CASE WHEN autorizado = 0 THEN 1 ELSE 0 END) as denegados
             FROM accesos 
-            WHERE fecha_hora >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            WHERE fecha_hora >= CURRENT_DATE - INTERVAL '7 days'
             GROUP BY DATE(fecha_hora)
             ORDER BY fecha DESC
         """)
