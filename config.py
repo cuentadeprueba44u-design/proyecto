@@ -4,8 +4,15 @@ from urllib.parse import urlparse
 
 # Configuración de la base de datos
 # Preferir DATABASE_URL (p. ej. la proveída por Render). Si no existe, usar valores individuales.
-DEFAULT_RENDER_EXTERNAL = 'postgresql://hydra:ONikfvcWFgK25RXKhsTCKczSIlOcpgpA@dpg-d45rep6uk2gs73coqjf0-a.oregon-postgres.render.com/control_acceso_postgreslq'
-DATABASE_URL = os.getenv('DATABASE_URL') or os.getenv('DATABASE_URI') or os.getenv('DEFAULT_DATABASE_URL') or DEFAULT_RENDER_EXTERNAL
+
+# Configuración Railway/Postgres
+DEFAULT_RAILWAY_URL = 'postgresql://postgres:PVKJelhYjgMmjcBOfBfWOqwqVOEGKkOu@postgres.railway.internal:5432/railway'
+DATABASE_URL = (
+    os.getenv('DATABASE_URL')
+    or os.getenv('DATABASE_URI')
+    or os.getenv('DEFAULT_DATABASE_URL')
+    or DEFAULT_RAILWAY_URL
+)
 
 def get_db_config():
     """Retorna un diccionario con la configuración de conexión para psycopg2.
@@ -23,12 +30,14 @@ def get_db_config():
         }
 
     # Fallback para desarrollo / valores por defecto (se configuran con las credenciales de Render si no hay variables de entorno)
+
+    # Railway defaults
     return {
-        'dbname': os.getenv('DB_NAME', 'control_acceso_postgreslq'),
-        'user': os.getenv('DB_USER', 'hydra'),
-        'password': os.getenv('DB_PASSWORD', 'ONikfvcWFgK25RXKhsTCKczSIlOcpgpA'),
-        'host': os.getenv('DB_HOST', 'dpg-d45rep6uk2gs73coqjf0-a.oregon-postgres.render.com'),
-        'port': int(os.getenv('DB_PORT', 5432))
+        'dbname': os.getenv('PGDATABASE', os.getenv('POSTGRES_DB', 'railway')),
+        'user': os.getenv('PGUSER', os.getenv('POSTGRES_USER', 'postgres')),
+        'password': os.getenv('PGPASSWORD', os.getenv('POSTGRES_PASSWORD', 'PVKJelhYjgMmjcBOfBfWOqwqVOEGKkOu')),
+        'host': os.getenv('PGHOST', 'postgres.railway.internal'),
+        'port': int(os.getenv('PGPORT', 5432))
     }
 
 
@@ -71,4 +80,3 @@ DURACION_CREDENCIAL_HORAS = int(os.getenv('DURACION_CREDENCIAL_HORAS', '8'))
 # Configuración de seguridad
 MAX_LOGIN_ATTEMPTS = int(os.getenv('MAX_LOGIN_ATTEMPTS', '5'))
 LOCKOUT_TIME = int(os.getenv('LOCKOUT_TIME_MIN', '15'))  # minutos
- 
