@@ -5,8 +5,8 @@ from urllib.parse import urlparse
 # Configuración de la base de datos
 # Preferir DATABASE_URL (p. ej. la proveída por Render). Si no existe, usar valores individuales.
 
-# Configuración Railway/Postgres
-DEFAULT_RAILWAY_URL = 'postgresql://postgres:PVKJelhYjgMmjcBOfBfWOqwqVOEGKkOu@postgres.railway.internal:5432/railway'
+# Configuración Railway/Postgres - Usando dirección IP directa en lugar de postgres.railway.internal
+DEFAULT_RAILWAY_URL = 'postgresql://postgres:PVKJelhYjgMmjcBOfBfWOqwqVOEGKkOu@35.227.164.209:5432/railway'
 DATABASE_URL = (
     os.getenv('DATABASE_URL')
     or os.getenv('DATABASE_URI')
@@ -31,13 +31,14 @@ def get_db_config():
 
     # Fallback para desarrollo / valores por defecto (se configuran con las credenciales de Render si no hay variables de entorno)
 
-    # Railway defaults
+    # Railway defaults con configuración específica para SSL
     return {
         'dbname': os.getenv('PGDATABASE', os.getenv('POSTGRES_DB', 'railway')),
         'user': os.getenv('PGUSER', os.getenv('POSTGRES_USER', 'postgres')),
         'password': os.getenv('PGPASSWORD', os.getenv('POSTGRES_PASSWORD', 'PVKJelhYjgMmjcBOfBfWOqwqVOEGKkOu')),
-        'host': os.getenv('PGHOST', 'postgres.railway.internal'),
-        'port': int(os.getenv('PGPORT', 5432))
+        'host': os.getenv('PGHOST', '35.227.164.209'),
+        'port': int(os.getenv('PGPORT', 5432)),
+        'options': '-c statement_timeout=60000'  # 60 segundos timeout
     }
 
 
