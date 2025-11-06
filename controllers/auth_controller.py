@@ -1,4 +1,4 @@
-from psycopg.rows import dict_row
+import psycopg2.extras
 from flask import render_template, request, redirect, url_for, session, flash
 from models.database import Database
 from auth.auth import registrar_intento_login, esta_bloqueado, resetear_intentos_login
@@ -24,21 +24,17 @@ def login():
             flash('Error de conexión con el servidor', 'danger')
             return render_template('login.html')
         
-        cursor = None
         try:
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT u.*, r.nombre as rol_nombre 
-                FROM control_acceso.usuarios u 
-                JOIN control_acceso.roles r ON u.rol_id = r.id 
-                WHERE u.correo = %s AND u.estado = 'activo'
-            """, (correo,))
-            row = cursor.fetchone()
-            usuario = None
-            if row:
-                # Convertir resultado a diccionario
-                columns = [desc[0] for desc in cursor.description]
-                usuario = dict(zip(columns, row))
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute("""
+                    SELECT u.*, r.nombre as rol_nombre 
+                    FROM control_acceso.usuarios u 
+                    JOIN control_acceso.roles r ON u.rol_id = r.id 
+                    WHERE u.correo = %s AND u.estado = 'activo'
+                """, (correo,))
+                usuario = cursor.fetchone()
+                if usuario:
+                    usuario = dict(usuario)
             if usuario and db.verificar_contrasena(contrasena, usuario['contrasena']):
                 # Login exitoso
                 resetear_intentos_login(client_ip)
@@ -64,8 +60,6 @@ def login():
             print(f"Error en login: {e}")
             flash('Error en el servidor', 'danger')
         finally:
-            if cursor:
-                cursor.close()
             if conn:
                 conn.close()
     
